@@ -1,0 +1,93 @@
+context_package:
+  id: CP-VRL-001
+  title: Per-pet visit booking rate limiter
+  version: 1.0.0
+  authority_order:
+    - SI-VRL-001 at ai/specs/visit-rate-limiter-invariants.md
+    - ai/memory/adr-004-visit-rate-limiting.md
+    - src/main/java/org/springframework/samples/petclinic/owner/VisitController.java
+    - src/main/java/org/springframework/samples/petclinic/owner/OwnerRepository.java
+    - src/main/java/org/springframework/samples/petclinic/owner/Pet.java
+    - src/main/java/org/springframework/samples/petclinic/owner/Visit.java
+    - src/main/resources/db/h2/schema.sql
+    - src/main/resources/db/mysql/schema.sql
+    - src/main/resources/db/postgres/schema.sql
+    - pom.xml
+  source_files:
+    read:
+      - src/main/java/org/springframework/samples/petclinic/owner/VisitController.java
+      - src/main/java/org/springframework/samples/petclinic/owner/Owner.java
+      - src/main/java/org/springframework/samples/petclinic/owner/Pet.java
+      - src/main/java/org/springframework/samples/petclinic/owner/Visit.java
+      - src/main/java/org/springframework/samples/petclinic/owner/OwnerRepository.java
+      - src/test/java/org/springframework/samples/petclinic/owner/VisitControllerTests.java
+      - src/main/resources/db/h2/schema.sql
+      - src/main/resources/db/mysql/schema.sql
+      - src/main/resources/db/postgres/schema.sql
+      - pom.xml
+    exclude:
+      - target/**
+      - .mvn-repo/**
+      - "**/data.sql"
+      - src/main/java/org/springframework/samples/petclinic/reminder/**
+  database_facts:
+    pets:
+      primary_key: id
+      ownership_column: owner_id
+    visits:
+      foreign_key: pet_id -> pets.id
+      existing_time_field: visit_date
+      warning: visit_date is a business date and cannot represent request-window time
+    required_rate_limit_state:
+      key: pet_id
+      fields:
+        - window_started_at as timezone-aware instant
+        - attempt_count as integer
+  constraints:
+    - Apply the limiter only to visit-creation POST requests.
+    - Preserve current controller validation, redirect, and flash behavior.
+    - Use database state and a per-pet lock; do not use an in-memory map.
+    - Do not add a dependency, network service, cache, endpoint, or UI.
+    - Preserve H2, MySQL, and PostgreSQL schema parity.
+    - Do not infer product policy beyond the accepted Spec Invariants.
+  execution_profile:
+    java_language_level: "17"
+    supported_runtime: "17+ within the project compatibility range"
+    spring_boot: "4.1.0"
+    build_tool: Maven Wrapper
+    memory_budget:
+      long_lived_limiter_state_in_application_heap: 0
+      unbounded_in_memory_keys: forbidden
+      measurement_status: not run
+    spring_data_jpa_boundary:
+      allowed:
+        - one limiter entity and repository
+        - one focused pet-row lock repository
+        - one transactional limiter service
+      forbidden:
+        - changing existing Owner aggregate persistence behavior
+        - introducing a generic repository abstraction
+        - holding a database transaction open across external work
+    allowed_libraries:
+      - Spring MVC
+      - Spring Data JPA
+      - Jakarta Persistence
+      - JUnit Jupiter
+      - AssertJ
+    forbidden_libraries:
+      - Bucket4j
+      - Redis clients
+      - distributed cache clients
+    allowed_commands:
+      - ./mvnw spring-javaformat:apply
+      - ./mvnw -Dtest=VisitRateLimiterIntegrationTests test
+      - ./mvnw -Dtest=VisitControllerTests test
+    network: dependency resolution only
+    credentials: none
+  freshness:
+    captured_on: 2026-07-28
+    invalidate_when:
+      - VisitController route or persistence flow changes.
+      - Supported databases change.
+      - Java or Spring Boot baseline changes.
+      - Product changes the threshold, window, or meaning of an attempt.

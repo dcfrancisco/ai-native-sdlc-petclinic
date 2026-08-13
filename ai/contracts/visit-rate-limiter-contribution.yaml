@@ -1,0 +1,118 @@
+ai_contribution_contract:
+  id: CC-VRL-001
+  version: 1.0.0
+  role: implementation contributor
+  objective: Implement PR-VRL-001 exactly and co-generate its verification.
+  prerequisites:
+    context_package:
+      id: CP-VRL-001
+      required_execution_profile:
+        java_language_level: "17"
+        supported_runtime: "17+ within the project compatibility range"
+        long_lived_limiter_state_in_application_heap: 0
+        spring_data_jpa_boundary: bounded repositories and one transactional limiter service
+    plan_receipt:
+      id: PR-VRL-001
+      required_state: approved for bounded implementation
+      human_approval_required: true
+  authority:
+    may:
+      - inspect repository files listed by CP-VRL-001
+      - create the six planned Java files
+      - modify the three database schema files
+      - run the Maven wrapper commands listed by CP-VRL-001
+      - correct formatting or compilation defects inside the allowed surface
+    may_not:
+      - change the threshold, window, or definition of an attempt
+      - edit VisitController, Owner, Pet, Visit, pom.xml, UI templates, or reminder code
+      - add dependencies, endpoints, caches, infrastructure, or credentials
+      - claim MySQL, PostgreSQL, or performance verification without executing it
+      - accept the contribution or approve release
+  allowed_change_surface:
+    create:
+      - src/main/java/org/springframework/samples/petclinic/owner/VisitRateLimit.java
+      - src/main/java/org/springframework/samples/petclinic/owner/VisitRateLimitRepository.java
+      - src/main/java/org/springframework/samples/petclinic/owner/PetRepository.java
+      - src/main/java/org/springframework/samples/petclinic/owner/VisitRateLimiter.java
+      - src/main/java/org/springframework/samples/petclinic/owner/VisitRateLimiterFilter.java
+      - src/test/java/org/springframework/samples/petclinic/owner/VisitRateLimiterIntegrationTests.java
+    modify:
+      - src/main/resources/db/h2/schema.sql
+      - src/main/resources/db/mysql/schema.sql
+      - src/main/resources/db/postgres/schema.sql
+  import_constraints:
+    allowed_for_filter:
+      - java.io.IOException
+      - java.time.Instant
+      - java.util.regex.Matcher
+      - java.util.regex.Pattern
+      - org.springframework.boot.autoconfigure.condition.ConditionalOnBean
+      - org.springframework.http.HttpHeaders
+      - org.springframework.http.HttpMethod
+      - org.springframework.http.HttpStatus
+      - org.springframework.stereotype.Component
+      - org.springframework.web.filter.OncePerRequestFilter
+      - jakarta.servlet.FilterChain
+      - jakarta.servlet.ServletException
+      - jakarta.servlet.http.HttpServletRequest
+      - jakarta.servlet.http.HttpServletResponse
+    forbidden_prefixes:
+      - com.github.benmanes.caffeine
+      - io.github.bucket4j
+      - org.springframework.data.redis
+      - redis.clients
+    wildcard_imports: forbidden
+    static_mutable_limiter_state: forbidden
+    new_dependencies: forbidden
+  invariants:
+    id: SI-VRL-001
+    source: ai/specs/visit-rate-limiter-invariants.md
+    binding:
+      - INV-01
+      - INV-02
+      - INV-03
+      - INV-04
+      - INV-05
+      - INV-06
+      - INV-07
+      - INV-08
+      - INV-09
+      - INV-10
+      - INV-11
+      - INV-12
+      - INV-13
+      - INV-14
+      - INV-15
+      - INV-16
+      - INV-17
+      - INV-18
+      - INV-19
+    target_not_evidence:
+      - INV-20
+  deliverables:
+    - implementation diff
+    - co-generated integration and repeated concurrency tests
+    - command transcript with exit status
+    - list of unverified claims and changed assumptions
+  verification:
+    required:
+      - spring-javaformat:apply
+      - compile
+      - VisitRateLimiterIntegrationTests
+      - VisitControllerTests
+    deferred:
+      - MySQL integration
+      - PostgreSQL integration
+      - representative load profile for INV-20
+  stop_conditions:
+    - an authoritative source conflicts with the plan
+    - a required edit falls outside the allowed change surface
+    - a schema migration is required for deployed data
+    - verification cannot run or produces unexplained failure
+    - a security, privacy, or destructive operation is discovered
+  report_format:
+    - files changed
+    - invariant coverage
+    - commands and results
+    - deviations
+    - residual risk

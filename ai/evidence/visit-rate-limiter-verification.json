@@ -1,0 +1,149 @@
+{
+  "verificationMatrixId": "VM-VRL-001",
+  "capturedAt": "2026-07-28",
+  "authority": {
+    "specInvariants": "SI-VRL-001",
+    "contextPackage": "CP-VRL-001",
+    "planReceipt": "PR-VRL-001",
+    "contributionContract": "CC-VRL-001",
+    "automatedEvidenceLog": "EV-VRL-001"
+  },
+  "provenance": {
+    "evidenceClass": "HISTORICAL",
+    "recordedExecutionDate": "2026-07-28",
+    "sourceCommit": null,
+    "rawOutputReference": null,
+    "currentPublicationBaselineReproduction": "NOT_RUN",
+    "currentReproductionReason": "No Java runtime is available in the current environment; database-specific limiter behavior also requires explicit MySQL and PostgreSQL execution."
+  },
+  "environment": {
+    "java": "17.0.20",
+    "springBoot": "4.1.0",
+    "database": "H2 in-memory",
+    "hostProfile": "local development"
+  },
+  "checks": [
+    {
+      "id": "VRL-COMPILE",
+      "status": "PASS",
+      "evidence": "Maven validate and compile completed with exit code 0",
+      "notes": "Formatting, project checkstyle, and no-HTTP validation passed with the dependency cache outside the source scan path"
+    },
+    {
+      "id": "VRL-THRESHOLD",
+      "status": "PASS",
+      "test": "rejectsTheFourthAttemptAndReportsTheRemainingWindow",
+      "invariants": ["INV-03", "INV-04"]
+    },
+    {
+      "id": "VRL-BOUNDARY",
+      "status": "PASS",
+      "test": "resetsAtTheExactWindowBoundary",
+      "invariants": ["INV-06", "INV-08"]
+    },
+    {
+      "id": "VRL-PRE-BOUNDARY-TIME",
+      "status": "PARTIAL",
+      "assertion": "59.999 seconds remains in the active window and locale or daylight-saving changes do not alter the result",
+      "evidence": "UTC Instant design inspection",
+      "reason": "The exact pre-boundary and timezone cases were not executed",
+      "gate": "focused verification",
+      "invariants": ["INV-06", "INV-08"]
+    },
+    {
+      "id": "VRL-HTTP-CONTRACT",
+      "status": "PASS",
+      "test": "fourthMatchingPostReturns429WithRetryAfter",
+      "assertions": ["HTTP 429", "Retry-After exists", "bounded response body"],
+      "invariants": ["INV-04"]
+    },
+    {
+      "id": "VRL-CONCURRENCY",
+      "status": "PASS",
+      "test": "allowsExactlyThreeOfEightConcurrentAttempts",
+      "repetitions": 5,
+      "requestsPerRepetition": 8,
+      "allowedPerRepetition": 3,
+      "invariants": ["INV-10", "INV-12"]
+    },
+    {
+      "id": "VRL-REJECTED-PERSISTENCE",
+      "status": "NOT_RUN",
+      "assertion": "a rate-rejected HTTP request does not persist a visit",
+      "reason": "The HTTP test asserts 429, Retry-After, and response body but does not independently query visit persistence",
+      "gate": "merge evidence",
+      "invariants": ["INV-04"]
+    },
+    {
+      "id": "VRL-DIFFERENT-PET-ISOLATION",
+      "status": "NOT_RUN",
+      "assertion": "requests for different pets do not serialize on one global lock",
+      "reason": "No synchronized or timed many-pet run was executed",
+      "gate": "performance evidence",
+      "invariants": ["INV-11"]
+    },
+    {
+      "id": "VRL-MISSING-PET",
+      "status": "PARTIAL",
+      "assertion": "a missing pet passes through to existing controller behavior without a limiter-specific existence response",
+      "evidence": "Filter and service source inspection",
+      "reason": "No dedicated runtime assertion was executed",
+      "gate": "security and compatibility review",
+      "invariants": ["INV-07", "INV-18"]
+    },
+    {
+      "id": "VRL-DATABASE-FAILURE",
+      "status": "NOT_RUN",
+      "assertion": "lock timeout or database unavailability is not silently converted to allowed",
+      "reason": "No lock-timeout or outage failure injection was executed",
+      "gate": "operational readiness",
+      "invariants": ["INV-19"]
+    },
+    {
+      "id": "VRL-MULTI-INSTANCE",
+      "status": "NOT_RUN",
+      "assertion": "multiple application instances sharing the database enforce one active per-pet window",
+      "reason": "Only one application context executed limiter behavior",
+      "gate": "production enablement",
+      "invariants": ["INV-09", "INV-10", "INV-12"]
+    },
+    {
+      "id": "VRL-SECURITY-POLICY",
+      "status": "PARTIAL",
+      "assertion": "the limiter discloses no personal data and is not represented as authorization",
+      "evidence": "Response and dependency inspection",
+      "reason": "Unauthenticated capacity exhaustion and invalid-form counting require product and security confirmation",
+      "gate": "security review",
+      "invariants": ["INV-05", "INV-07", "INV-17", "INV-18"]
+    },
+    {
+      "id": "VRL-REGRESSION",
+      "status": "PASS",
+      "tests": 4,
+      "suite": "VisitControllerTests",
+      "invariants": ["INV-14", "INV-15"]
+    },
+    {
+      "id": "VRL-P95-OVERHEAD",
+      "status": "NOT_RUN",
+      "targetMs": 10,
+      "percentile": 95,
+      "reason": "No representative load environment or accepted load profile was supplied",
+      "gate": "production enablement",
+      "invariants": ["INV-20"]
+    },
+    {
+      "id": "VRL-DATABASE-PARITY",
+      "status": "NOT_RUN",
+      "databases": ["MySQL", "PostgreSQL"],
+      "historicalEvidence": "The 2026-07-28 record reports MySQL application startup and PostgreSQL startup on host port 55432.",
+      "reason": "The exact source commit and raw output were not retained, and the current publication baseline did not rerun either database profile. Limiter threshold and concurrency behavior were never executed on these databases.",
+      "gate": "deployment",
+      "invariants": ["INV-16"]
+    }
+  ],
+  "gate": {
+    "status": "BLOCKED",
+    "reason": "Production enablement remains blocked by INV-20, runtime database parity, multi-instance behavior, and operational failure evidence"
+  }
+}

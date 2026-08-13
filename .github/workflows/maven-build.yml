@@ -1,0 +1,41 @@
+# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://docs.github.com/en/actions/use-cases-and-examples/building-and-testing/building-and-testing-java-with-maven
+
+name: AI-Native Delivery Evidence
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  delivery-evidence:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [ '17' ]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK ${{matrix.java}}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{matrix.java}}
+          distribution: 'adopt'
+          cache: maven
+      - name: Run deterministic delivery evidence
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }}
+        run: ./scripts/collect-delivery-evidence.sh
+      - name: Upload delivery evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: delivery-evidence-${{ github.sha }}
+          path: target/delivery-evidence/
+          if-no-files-found: error

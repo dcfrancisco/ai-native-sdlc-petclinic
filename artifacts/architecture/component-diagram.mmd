@@ -1,0 +1,10 @@
+%% Book chapter: 6
+flowchart TD
+    Trigger["Scheduler or operator"] --> Controller["Reminder controller"]
+    Trigger --> Service["Reminder service"]
+    Controller --> Service
+    Service --> Owners["Owner repository"]
+    Service --> Reminders["Reminder repository"]
+    Service --> Port["Notification gateway"]
+    Port --> Local["Local adapter"]
+    Service --> Metrics["Reminder metrics"]

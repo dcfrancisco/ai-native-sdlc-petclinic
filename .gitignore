@@ -1,0 +1,68 @@
+HELP.md
+pom.xml.bak
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### STS ###
+.attach_pid*
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### CSS ###
+_site/
+*.css
+!petclinic.css
+
+### Operating system ###
+.DS_Store
+Thumbs.db
+
+### Secrets and local configuration ###
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*.jks
+
+### Local evidence and tool caches ###
+.mvn-repo/
+coverage/
+.pytest_cache/
+__pycache__/
+*.py[cod]

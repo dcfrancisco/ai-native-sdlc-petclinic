@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+
+<html xmlns:th="https://www.thymeleaf.org" th:replace="~{fragments/layout :: layout (~{::body},'reminders')}">
+
+<body>
+
+  <h2 th:text="#{reminders.title}">Appointment Reminders</h2>
+
+  <div th:if="${message}" class="alert alert-success">
+    <span th:text="${message}"></span>
+  </div>
+
+  <p th:text="#{reminders.localDelivery(${enabled ? #messages.msg('enabled') : #messages.msg('disabled')},${leadDays})}"></p>
+
+  <form method="post" th:action="@{/reminders/process}">
+    <button type="submit" class="btn btn-primary" th:text="#{reminders.process}">Process due reminders</button>
+  </form>
+
+  <br />
+
+  <table class="table table-striped" id="reminders">
+    <thead>
+      <tr>
+        <th th:text="#{reminders.visit}">Visit</th>
+        <th th:text="#{pet}">Pet</th>
+        <th th:text="#{visitDate}">Visit date</th>
+        <th th:text="#{reminders.destination}">Destination</th>
+        <th th:text="#{reminders.status}">Status</th>
+        <th th:text="#{reminders.attempts}">Attempts</th>
+        <th th:text="#{reminders.lastError}">Last error</th>
+        <th th:text="#{reminders.recovery}">Recovery</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr th:if="${#lists.isEmpty(reminders)}">
+        <td colspan="8" th:text="#{reminders.empty}">No reminders have been recorded.</td>
+      </tr>
+      <tr th:each="reminder : ${reminders}">
+        <td th:text="${reminder.visitId}"></td>
+        <td th:text="${reminder.petName}"></td>
+        <td th:text="${#temporals.format(reminder.visitDate, 'yyyy-MM-dd')}"></td>
+        <td th:text="${reminder.destinationHint}"></td>
+        <td th:text="${reminder.status}"></td>
+        <td th:text="${reminder.attemptCount}"></td>
+        <td th:text="${reminder.lastError ?: '-'}"></td>
+        <td>
+          <form th:if="${reminder.status.name() == 'FAILED'}" method="post"
+            th:action="@{/reminders/{id}/retry(id=${reminder.id})}">
+            <button type="submit" class="btn btn-secondary" th:text="#{reminders.retry}">Retry</button>
+          </form>
+          <span th:unless="${reminder.status.name() == 'FAILED'}" th:text="#{reminders.notRequired}">Not required</span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+</body>
+
+</html>

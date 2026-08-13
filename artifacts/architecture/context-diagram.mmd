@@ -1,0 +1,14 @@
+%% Book chapter: 6
+flowchart LR
+    Owner["Pet owner"]
+    Operator["Clinic operator"]
+    PetClinic["PetClinic with reminder capability"]
+    LocalAdapter["Local notification adapter"]
+    Database["PetClinic database"]
+    Monitoring["Actuator monitoring"]
+
+    Owner -->|"Books visit and receives future production reminder"| PetClinic
+    Operator -->|"Processes and recovers reminders"| PetClinic
+    PetClinic -->|"Persists delivery state"| Database
+    PetClinic -->|"Sends bounded local delivery"| LocalAdapter
+    Monitoring -->|"Reads reminder metrics"| PetClinic
